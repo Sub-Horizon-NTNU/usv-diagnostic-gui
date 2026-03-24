@@ -8,5 +8,11 @@ def generate_launch_description():
             executable='usv_diagnostic_gui',
             name='usv_diagnostic_gui',
             output='screen'
-        )
+        ),
+        Node(
+            package='usv_diagnostic_gui',
+            executable='usv_external_pinger',
+            name='usv_external_pinger',
+            output='screen'
+        ),
     ])

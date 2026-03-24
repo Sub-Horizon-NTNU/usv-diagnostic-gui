@@ -1,0 +1,108 @@
+pinger_hosts:
+  - topic: /usv_external_pinger/base_station_status
+    label: Base Station
+    ip: 192.168.2.3
+
+  - topic: /usv_external_pinger/wifi_receiver_status
+    label: Wifi Receiver
+    ip: 192.168.2.4
+
+  - topic: /usv_external_pinger/jetson_status
+    label: Jetson Orin NX
+    ip: 192.168.2.2
+
+  - topic: /usv_external_pinger/raspberry_status
+    label: Raspberry Pi
+    ip: 192.168.2.5
+
+  - topic: /usv_external_pinger/gps_module_status
+    label: GPS Module
+    ip: 192.168.2.6
+
+
+heartbeat_indicators:
+  columns: 8
+  items:
+    - topic: /usv_external_pinger/base_station_status
+      label: Base Station
+      
+    - topic: /usv_external_pinger/wifi_receiver_status
+      label: Wifi Receiver
+
+    - topic: /usv_external_pinger/jetson_status
+      label: Jetson Orin NX
+
+    - topic: /usv_external_pinger/raspberry_status
+      label: Raspberry Pi
+
+    - topic: /usv_external_pinger/gps_module_status
+      label: GPS Module
+
+    - topic: /usv_arduino_interface/left_arduino_status
+      label: Arduino (L)
+
+    - topic: /usv_arduino_interface/right_arduino_status
+      label: Arduino (R)
+
+    - topic: /usv_internal_pinger/jetson_internet
+      label: Jetson Internet   
+
+
+float_displays:
+  columns: 5
+  items:
+    - topic: /usv_arduino_interface/electronics_voltage
+      label: Electronics Voltage
+      unit: V
+
+    - topic: /usv_arduino_interface/thruster_1_voltage
+      label: Thruster 1 Voltage
+      unit: V
+
+    - topic: /usv_arduino_interface/thruster_2_voltage
+      label: Thruster 2 Voltage
+      unit: V
+
+    - topic: /usv_arduino_interface/thruster_3_voltage
+      label: Thruster 3 Voltage
+      unit: V
+
+    - topic: /usv_arduino_interface/thruster_4_voltage
+      label: Thruster 4 Voltage
+      unit: V
+
+    - topic: /usv_arduino_interface/electronics_current
+      label: Electronics Current
+      unit: A
+
+    - topic: /usv_arduino_interface/thruster_1_current
+      label: Thruster 1 Current
+      unit: A
+
+    - topic: /usv_arduino_interface/thruster_2_current
+      label: Thruster 2 Current
+      unit: A 
+
+    - topic: /usv_arduino_interface/thruster_3_current
+      label: Thruster 3 Current
+      unit: A
+
+    - topic: /usv_arduino_interface/thruster_4_current
+      label: Thruster 4 Current
+      unit: A
+
+
+buttons:
+  columns: 3
+  items:
+    - topic: /usv_command_node/launch_usv_bringup
+      label: Start USV Bringup
+      value: true
+
+    - topic: /usv_command_node/stop_usv_bringup
+      label: Stop USV Bringup
+      value: true
+
+    - topic: /usv_command_node/usv_shutdown
+      label: USV Shutdown
+      value: true

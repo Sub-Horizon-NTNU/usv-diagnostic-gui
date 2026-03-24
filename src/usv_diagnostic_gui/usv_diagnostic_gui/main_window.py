@@ -1,31 +1,29 @@
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-                             QLabel, QPushButton, QListWidget, QTextEdit,
-                             QGridLayout, QGroupBox, QScrollArea)
+                             QLabel, QListWidget, QTextEdit, QGroupBox, QScrollArea)
+from PyQt5.QtWidgets import QListWidgetItem 
+
+from usv_diagnostic_gui.diagnostic_widgets import (
+    BoolIndicatorWidget, FloatDisplayWidget, CommandButtonWidget, HeartbeatIndicatorWidget
+)
 
 class MainWindow(QMainWindow):
     def __init__(self, ros_node, config):
         super().__init__()
         self.ros_node = ros_node
-        self.config = config   # dictionary with bool_indicators, float_displays, buttons
 
-        # Connect ROS signals to GUI slots
         self.ros_node.topic_list_updated.connect(self.update_topic_list)
         self.ros_node.topic_data_received.connect(self.display_topic_data)
-        self.ros_node.bool_indicator_updated.connect(self.update_bool_indicator)
-        self.ros_node.float_value_updated.connect(self.update_float_display)
 
-        # Set up the UI
-        self.setWindowTitle("USV Diagnostic GUI - Enhanced")
-        self.setGeometry(100, 100, 1200, 800)
+        self.setWindowTitle("USV Diagnostic GUI")
+        self.setGeometry(100, 100, 1920, 1200)
 
-        # Central widget and main layout
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        main_layout = QHBoxLayout(central_widget)
+        central = QWidget()
+        self.setCentralWidget(central)
+        main_layout = QHBoxLayout(central)
 
-        # ========== LEFT PANEL: Topic List ==========
+        # ---------- Left panel: Topic list and echo ----------
         left_panel = QWidget()
         left_layout = QVBoxLayout(left_panel)
         left_layout.addWidget(QLabel("ROS Topics (click to echo)"))
@@ -33,93 +31,64 @@ class MainWindow(QMainWindow):
         self.topic_list.itemClicked.connect(self.on_topic_clicked)
         left_layout.addWidget(self.topic_list)
 
-        # Echo display area
         self.echo_display = QTextEdit()
         self.echo_display.setReadOnly(True)
         left_layout.addWidget(QLabel("Topic Echo:"))
         left_layout.addWidget(self.echo_display)
 
-        # ========== RIGHT PANEL: Diagnostics ==========
+        # ---------- Right panel: Diagnostics from config ----------
         right_panel = QWidget()
         right_layout = QVBoxLayout(right_panel)
 
-        # --- Bool Indicators Group ---
-        if self.config.get('bool_indicators'):
-            bool_group = QGroupBox("Status Indicators")
-            bool_layout = QGridLayout()
-            self.indicator_labels = {}   # topic -> (label_widget, circle_widget)
-            row = 0
-            for idx, item in enumerate(self.config['bool_indicators']):
-                topic = item['topic']
-                label_text = item.get('label', topic)
-                # Create a colored circle (QLabel with stylesheet)
-                circle = QLabel()
-                circle.setFixedSize(20, 20)
-                circle.setStyleSheet("background-color: gray; border-radius: 10px;")
-                # Label
-                lbl = QLabel(label_text)
-                bool_layout.addWidget(circle, row, 0)
-                bool_layout.addWidget(lbl, row, 1)
-                self.indicator_labels[topic] = (lbl, circle)
-                # Subscribe to this bool topic
-                self.ros_node.add_bool_indicator(topic)
-                row += 1
-            bool_group.setLayout(bool_layout)
-            right_layout.addWidget(bool_group)
+        # Create widget groups based on config
+        self.widgets = []   # keep references to all diagnostic widgets
 
-        # --- Float Displays Group ---
-        if self.config.get('float_displays'):
-            float_group = QGroupBox("Sensor Values")
-            float_layout = QGridLayout()
-            self.float_labels = {}   # topic -> (label_widget, value_widget)
-            row = 0
-            for idx, item in enumerate(self.config['float_displays']):
-                topic = item['topic']
-                label_text = item.get('label', topic)
-                unit = item.get('unit', '')
-                # Description label
-                desc_lbl = QLabel(label_text)
-                # Value label
-                value_lbl = QLabel("---")
-                if unit:
-                    value_lbl.setText(f"--- {unit}")
-                float_layout.addWidget(desc_lbl, row, 0)
-                float_layout.addWidget(value_lbl, row, 1)
-                self.float_labels[topic] = (desc_lbl, value_lbl, unit)
-                # Subscribe to this float topic
-                self.ros_node.add_float_display(topic)
-                row += 1
-            float_group.setLayout(float_layout)
-            right_layout.addWidget(float_group)
+        if 'heartbeat_indicators' in config:
+            columns = config['heartbeat_indicators'].get('columns', 1)
+            items = config['heartbeat_indicators'].get('items', config['heartbeat_indicators'])
+            group = self._create_group("Heartbeat Indicators", items, HeartbeatIndicatorWidget, columns)
+            right_layout.addWidget(group)
 
-        # --- Buttons Group ---
-        if self.config.get('buttons'):
-            button_group = QGroupBox("Commands")
-            button_layout = QHBoxLayout()
-            for item in self.config['buttons']:
-                topic = item['topic']
-                label = item.get('label', topic)
-                msg_type = item.get('msg_type', 'bool')
-                value = item.get('value', True)
-                btn = QPushButton(label)
-                # Connect button to a lambda that calls the publish method
-                btn.clicked.connect(lambda checked, t=topic, m=msg_type, v=value:
-                                    self.ros_node.publish_bool(t, v))
-                button_layout.addWidget(btn)
-            button_group.setLayout(button_layout)
-            right_layout.addWidget(button_group)
+        if 'bool_indicators' in config:
+            columns = config['bool_indicators'].get('columns', 1)
+            items = config['bool_indicators'].get('items', config['bool_indicators'])
+            group = self._create_group("Status Indicators", items, BoolIndicatorWidget, columns)
+            right_layout.addWidget(group)
 
-        # Add stretch to push everything up
+        if 'float_displays' in config:
+            columns = config['float_displays'].get('columns', 1)
+            items = config['float_displays'].get('items', config['float_displays'])
+            group = self._create_group("Sensor Values", items, FloatDisplayWidget, columns)
+            right_layout.addWidget(group)
+
+        if 'buttons' in config:
+            columns = config['buttons'].get('columns', 1)
+            items = config['buttons'].get('items', config['buttons'])
+            group = self._create_group("Commands", items, CommandButtonWidget, columns)
+            right_layout.addWidget(group)
+
         right_layout.addStretch()
 
-        # ========== Combine left and right panels ==========
-        main_layout.addWidget(left_panel, 1)   # left takes 1 part
-        main_layout.addWidget(right_panel, 2)  # right takes 2 parts
+        # Add left and right panels to main layout
+        main_layout.addWidget(left_panel, 1)
+        main_layout.addWidget(right_panel, 2)
 
         # Request initial topic list
         self.ros_node.refresh_topic_list()
 
-    # -------------------- Slots --------------------
+    def _create_group(self, title, items, widget_class, columns=1):
+        group = QtWidgets.QGroupBox(title)
+        layout = QtWidgets.QGridLayout()
+        for index, spec in enumerate(items):
+            row = index // columns
+            col = index % columns
+            widget_obj = widget_class(spec, parent=group)
+            widget_obj.connect_signals(self.ros_node)
+            self.widgets.append(widget_obj)
+            layout.addWidget(widget_obj, row, col, 1, 1)
+        group.setLayout(layout)
+        return group
+
     @pyqtSlot(list)
     def update_topic_list(self, topics):
         self.topic_list.clear()
@@ -129,33 +98,10 @@ class MainWindow(QMainWindow):
     def display_topic_data(self, topic, data):
         self.echo_display.append(f"--- {topic} ---")
         self.echo_display.append(data)
-        # Optionally limit number of lines
-        doc = self.echo_display.document()
-        if doc.lineCount() > 100:
-            # Keep last 50 lines
-            cursor = self.echo_display.textCursor()
-            cursor.movePosition(QtGui.QTextCursor.Start)
-            cursor.movePosition(QtGui.QTextCursor.Down, QtGui.QTextCursor.KeepAnchor, 50)
-            cursor.removeSelectedText()
-
-    @pyqtSlot(str, bool)
-    def update_bool_indicator(self, topic, value):
-        if topic in self.indicator_labels:
-            _, circle = self.indicator_labels[topic]
-            color = "#00ff00" if value else "#ff0000"   # green if True, red if False
-            circle.setStyleSheet(f"background-color: {color}; border-radius: 10px;")
-
-    @pyqtSlot(str, float)
-    def update_float_display(self, topic, value):
-        if topic in self.float_labels:
-            _, value_lbl, unit = self.float_labels[topic]
-            if unit:
-                value_lbl.setText(f"{value:.2f} {unit}")
-            else:
-                value_lbl.setText(f"{value:.2f}")
-
-    @pyqtSlot()
+        
+    @pyqtSlot(QListWidgetItem)
     def on_topic_clicked(self, item):
         topic_name = item.text()
+        self.echo_display.clear()
         self.ros_node.subscribe_to_topic_echo(topic_name)
         self.echo_display.append(f"Subscribed to {topic_name}...")

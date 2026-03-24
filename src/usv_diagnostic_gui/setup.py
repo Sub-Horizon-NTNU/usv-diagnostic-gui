@@ -1,5 +1,5 @@
-import glob
 import os
+from glob import glob
 from setuptools import find_packages, setup
 
 package_name = 'usv_diagnostic_gui'
@@ -10,23 +10,24 @@ setup(
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
-         ['resource/' + package_name]),
+            ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'),
-         glob.glob(os.path.join('launch', '*launch.[pxy][yma]*'))),
+            glob(os.path.join('launch', '*launch.[pxy][yma]*'))),
+        (os.path.join('share', package_name, 'config'),
+            glob(os.path.join('config', '*.yaml'))),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='orjan',
     maintainer_email='orjan@todo.todo',
-    description='TODO: Package description',
-    license='TODO: License declaration',
-    extras_require={
-        'test': ['pytest'],
-    },
+    description='USV Diagnostic GUI',
+    license='TODO',
+    extras_require={'test': ['pytest']},
     entry_points={
         'console_scripts': [
             'usv_diagnostic_gui = usv_diagnostic_gui.main:main',
+            'usv_external_pinger = usv_diagnostic_gui.usv_external_pinger:main',
         ],
     },
 )
