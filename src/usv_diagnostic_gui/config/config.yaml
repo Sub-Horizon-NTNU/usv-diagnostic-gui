@@ -95,14 +95,30 @@ float_displays:
 buttons:
   columns: 3
   items:
-    - topic: /usv_command_node/launch_usv_bringup
-      label: Start USV Bringup
-      value: true
+    - label: Start USV Bringup
+      command: "ros2 launch usv_bringup usv_bringup.launch.py"
+      tab_name: usv_bringup
+      args:
+        - name: qgc_ip
+          default: "192.168.2.42:14560"
+          description: QGroundControl IP and port
 
-    - topic: /usv_command_node/stop_usv_bringup
-      label: Stop USV Bringup
-      value: true
+    - label: Jetson Reboot
+      command: "echo '{sudo_password}' | sudo -S reboot"
+      tab_name: Reboot
+      no_stop: true
+      args:
+        - name: sudo_password
+          default: ""
+          description: Sudo password
+          secret: true
 
-    - topic: /usv_command_node/usv_shutdown
-      label: USV Shutdown
-      value: true
+    - label: Jetson Shutdown
+      command: "echo '{sudo_password}' | sudo -S shutdown -h now"
+      tab_name: Shutdown
+      no_stop: true
+      args:
+        - name: sudo_password
+          default: ""
+          description: Sudo password
+          secret: true

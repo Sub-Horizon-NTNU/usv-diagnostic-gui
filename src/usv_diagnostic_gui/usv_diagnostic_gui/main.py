@@ -4,6 +4,10 @@ import threading
 import rclpy
 import yaml
 import os
+
+# Disable GPU acceleration for QtWebEngine (required inside distrobox/containers
+# where GPU drivers like nouveau/DRI3 are not available to the Chromium process)
+os.environ.setdefault('QTWEBENGINE_CHROMIUM_FLAGS', '--disable-gpu --disable-software-rasterizer')
 from ament_index_python.packages import get_package_share_directory
 from rclpy.executors import MultiThreadedExecutor
 from PyQt5.QtWidgets import QApplication
