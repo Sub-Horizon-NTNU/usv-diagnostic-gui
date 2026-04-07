@@ -9,7 +9,7 @@ import cv2
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage
-from std_msgs.msg import UInt16
+from std_msgs.msg import Bool, UInt16
 
 
 _SDP = """\
@@ -43,8 +43,10 @@ class UsvPiInterfaceNode(Node):
 
         self.pub = self.create_publisher(CompressedImage, image_topic, 10)
 
+        self._stream_paused = False
         self.servo_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.create_subscription(UInt16, servo_topic, self._servo_callback, 10)
+        self.create_subscription(Bool, '/camera/stream/paused', self._paused_callback, 10)
 
         sdp = tempfile.NamedTemporaryFile(suffix='.sdp', mode='w', delete=False)
         sdp.write(_SDP.format(port=port))
@@ -61,6 +63,14 @@ class UsvPiInterfaceNode(Node):
             f'Servo: {servo_topic} -> UDP {self.pi_ip}:{self.servo_port}'
         )
 
+    def _paused_callback(self, msg):
+        self._stream_paused = msg.data
+        cmd = b'STREAM_OFF' if msg.data else b'STREAM_ON'
+        try:
+            self.servo_sock.sendto(cmd, (self.pi_ip, self.servo_port))
+        except Exception as e:
+            self.get_logger().warn(f'Stream control UDP send failed: {e}')
+
     def _servo_callback(self, msg):
         pulse = max(600, min(2400, int(msg.data)))
         try:
@@ -74,6 +84,10 @@ class UsvPiInterfaceNode(Node):
         last_log = time.time()
 
         while self._running:
+            if self._stream_paused:
+                time.sleep(0.5)
+                continue
+
             self.get_logger().info('Opening stream...')
             os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = (
                 'protocol_whitelist;file,rtp,udp,crypto,data'
@@ -90,7 +104,7 @@ class UsvPiInterfaceNode(Node):
 
             self.get_logger().info('Stream opened.')
 
-            while self._running:
+            while self._running and not self._stream_paused:
                 ret, frame = cap.read()
                 if not ret:
                     break
@@ -114,7 +128,7 @@ class UsvPiInterfaceNode(Node):
                     last_log = now
 
             cap.release()
-            if self._running:
+            if self._running and not self._stream_paused:
                 self.get_logger().warn('Stream ended, reconnecting in 3s...')
                 time.sleep(3)
 

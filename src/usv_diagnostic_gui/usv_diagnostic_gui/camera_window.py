@@ -136,6 +136,7 @@ class CameraWindow(QtWidgets.QWidget):
         self._stale_timer.timeout.connect(lambda: self._no_signal_overlay.setVisible(True))
 
         # Start paused
+        self._is_paused = True
         ros_node.set_stream_paused(True)
         ros_node.image_updated.connect(self._on_image)
 
@@ -152,6 +153,8 @@ class CameraWindow(QtWidgets.QWidget):
 
     @pyqtSlot(bytes)
     def _on_image(self, jpeg_bytes: bytes):
+        if self._is_paused:
+            return
         now = time.monotonic()
         if now - self._last_frame_time < 1 / 30:
             return
@@ -168,6 +171,7 @@ class CameraWindow(QtWidgets.QWidget):
         self._video_label.setPixmap(scaled)
 
     def _on_pause_toggled(self, checked: bool):
+        self._is_paused = checked
         self._pause_btn.setText("⏸ Pause" if not checked else "▶ Resume")
         self._paused_overlay.setVisible(checked)
         if checked:
