@@ -1,10 +1,9 @@
-# Goal: command to run and a tab name to identify the output stream
 string command
 string tab_name
 ---
-# Result
+
 int32 exit_code
 string message
 ---
-# Feedback: one line of stdout/stderr at a time
+
 string output_line

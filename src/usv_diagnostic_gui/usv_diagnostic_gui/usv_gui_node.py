@@ -227,7 +227,6 @@ class UsvGuiNode(Node, QObject):
     def _on_cancel_response(self, tab_name: str, future):
         try:
             response = future.result()
-            # clean up manually if the server rejected the cancellation
             if not response.goals_canceling:
                 self.get_logger().warn(f'Cancel not accepted for {tab_name}, cleaning up')
                 self._active_goals.pop(tab_name, None)

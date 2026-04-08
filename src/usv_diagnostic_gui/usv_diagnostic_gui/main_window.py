@@ -154,7 +154,6 @@ class MainWindow(QMainWindow):
             self._process_tabs[tab_name] = output
             self.output_tabs.addTab(output, tab_name)
 
-        # Switch to the tab
         for i in range(self.output_tabs.count()):
             if self.output_tabs.tabText(i) == tab_name:
                 self.output_tabs.setCurrentIndex(i)

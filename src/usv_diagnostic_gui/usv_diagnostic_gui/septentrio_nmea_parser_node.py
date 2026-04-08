@@ -7,9 +7,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool, Float32
 
-
 class SeptentrioNmeaParserNode(Node):
-
     def __init__(self):
         super().__init__('septentrio_nmea_parser')
         self.declare_parameter('host', '192.168.2.6')

@@ -4,8 +4,6 @@ from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QLineEdit, Q
 
 
 class GpsStatusBar(QtWidgets.QWidget):
-    """Compact horizontal GPS status strip shown above the map."""
-
     TIMEOUT_MS = 2000
 
     _RTK_MAP = {
@@ -358,10 +356,10 @@ class CommandButtonWidget(QtWidgets.QWidget):
             if dialog.exec_() != QtWidgets.QDialog.Accepted:
                 return
             arg_values = dialog.get_args()
-            # Substitute {arg_name} placeholders in-place (e.g. passwords, inline values)
+
             for k, v in arg_values.items():
                 command = command.replace(f'{{{k}}}', v)
-            # Append remaining args as key:=value (ROS2 launch args)
+
             suffix = ' '.join(
                 f'{k}:={v}' for k, v in arg_values.items()
                 if f'{{{k}}}' not in self.command and v != ''
