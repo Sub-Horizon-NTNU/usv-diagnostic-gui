@@ -94,26 +94,14 @@ distrobox enter ros2-humble
 cd ~/usv-diagnostic-gui
 ./install.sh
 ```
-
-#### 4. Display
-
-Distrobox forwards your display automatically, so GUI apps just work. If something looks wrong, check that these are set inside the container:
-```bash
-echo $DISPLAY          # e.g. :1
-echo $WAYLAND_DISPLAY  # e.g. wayland-0
-```
-
-#### 5. Pinging from inside the container
-
-The pinger node automatically detects Distrobox and uses `distrobox-host-exec ping` to reach hosts on the host network. Nothing needs to be configured manually.
-
 ---
 
 ## Usage
 
-### Launch the GUI
+### Build and Launch the GUI
 
 ```bash
+colcon build
 source install/setup.bash  # skip if already in .bashrc
 ros2 launch usv_diagnostic_gui gui_launch.py
 ```
