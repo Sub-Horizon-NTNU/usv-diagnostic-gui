@@ -106,6 +106,7 @@ class MainWindow(QMainWindow):
 
         self.map_widget = MapWidget()
         self.ros_node.gps_updated.connect(self.map_widget.update_position)
+        self.ros_node.buoys_updated.connect(self.map_widget.update_buoys)
         right_splitter.addWidget(self.map_widget)
 
         self._camera_window = CameraWindow(ros_node)

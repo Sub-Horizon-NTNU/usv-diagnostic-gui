@@ -10,6 +10,8 @@ from rosidl_runtime_py.convert import message_to_ordereddict
 from PyQt5.QtCore import QObject, pyqtSignal
 
 from usv_command_msgs.action import RunCommand
+from object_msgs.msg import Buoys
+from waypoint_msgs.msg import WaypointStatus
 
 
 class UsvGuiNode(Node, QObject):
@@ -22,6 +24,7 @@ class UsvGuiNode(Node, QObject):
     image_updated = pyqtSignal(bytes)              # JPEG bytes from camera
     command_output = pyqtSignal(str, str)          # (tab_name, line)
     command_done = pyqtSignal(str, int)            # (tab_name, exit_code)
+    buoys_updated = pyqtSignal(list)               # [(dN, dE, color, id), ...] relative to boat NED
 
     def __init__(self):
         Node.__init__(self, 'usv_gui_node')
@@ -31,6 +34,7 @@ class UsvGuiNode(Node, QObject):
         self.indicator_subs = {}
         self.float_subs = {}
         self.button_publishers = {}
+        self._boat_ned = (0.0, 0.0)
 
         self._command_client = ActionClient(
             self, RunCommand, 'usv_command_node/run_command'
@@ -66,7 +70,28 @@ class UsvGuiNode(Node, QObject):
             gps_qos
         )
 
+        self.create_subscription(
+            WaypointStatus,
+            'selene/controller/status',
+            self._status_callback,
+            10,
+        )
+        self.create_subscription(
+            Buoys,
+            'selene/environment_estimator/buoys',
+            self._buoys_callback,
+            10,
+        )
+
         self.get_logger().info('ROS GUI node initialized')
+
+    def _status_callback(self, msg):
+        self._boat_ned = (msg.current_x, msg.current_y)
+
+    def _buoys_callback(self, msg):
+        bx, by = self._boat_ned
+        buoys = [(b.x - bx, b.y - by, b.color, int(b.id)) for b in msg.buoys]
+        self.buoys_updated.emit(buoys)
 
     def refresh_topic_list(self):
         topics = self.get_topic_names_and_types()

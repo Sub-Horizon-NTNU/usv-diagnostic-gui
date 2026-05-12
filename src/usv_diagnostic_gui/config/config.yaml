@@ -95,13 +95,51 @@ float_displays:
 buttons:
   columns: 3
   items:
-    - label: Start USV Bringup
+    - label: Bringup
       command: "ros2 launch usv_bringup usv_bringup.launch.py"
-      tab_name: usv_bringup
+      tab_name: bringup
       args:
+        - name: simulator_mode
+          default: "false"
+          description: Use simulator (true/false)
+        - name: initial_heading
+          default: "0.0"
+          description: Initial heading in degrees
         - name: qgc_ip
           default: "192.168.2.42:14560"
           description: QGroundControl IP and port
+
+    - label: Controller
+      command: "ros2 launch usv_controller usv_controller.launch.py"
+      tab_name: controller
+      args:
+        - name: initial_heading
+          default: "0.0"
+          description: Initial heading in degrees
+
+    - label: 8-Test
+      command: "ros2 launch usv_mission_planner mission.launch.py mission:=figure_8_test"
+      tab_name: 8_test
+
+    - label: Circle
+      command: "ros2 launch usv_mission_planner mission.launch.py mission:=circle_test"
+      tab_name: circle
+
+    - label: Triangle
+      command: "ros2 launch usv_mission_planner mission.launch.py mission:=triangle_test"
+      tab_name: triangle
+
+    - label: Speedgate
+      command: "ros2 launch usv_mission_planner mission.launch.py mission:=speedgate_mission"
+      tab_name: speedgate
+
+    - label: Obstacle
+      command: "ros2 launch usv_mission_planner mission.launch.py mission:=obstacle_channel_mission"
+      tab_name: obstacle
+
+    - label: Docking
+      command: "ros2 launch usv_mission_planner mission.launch.py mission:=visual_docking_mission"
+      tab_name: docking
 
     - label: Jetson Reboot
       command: "echo '{sudo_password}' | sudo -S reboot"

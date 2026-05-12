@@ -12,6 +12,8 @@
   <depend>sensor_msgs</depend>
   <depend>geographic_msgs</depend>
   <depend>usv_command_msgs</depend>
+  <depend>object_msgs</depend>
+  <depend>waypoint_msgs</depend>
   <exec_depend>python3-pyqt5</exec_depend>
   <exec_depend>python3-pyqt5.qtwebengine</exec_depend>
   <exec_depend>python3-yaml</exec_depend>

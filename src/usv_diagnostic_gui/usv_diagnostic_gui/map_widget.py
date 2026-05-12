@@ -230,6 +230,7 @@ _MAP_HTML = """<!DOCTYPE html>
 
       updateFov(lat, lon, heading);
       updateCompass(heading);
+      renderBuoys();
     }}
 
     function setAutoFollow(val) {{ autoFollow = val; }}
@@ -240,6 +241,44 @@ _MAP_HTML = """<!DOCTYPE html>
     function clearTrack() {{
       trackCoords = [];
       if (trackLine) {{ trackLine.setLatLngs([]); }}
+    }}
+
+    var BUOY_COLOR_MAP = {{
+      'red':    '#ff3333',
+      'green':  '#33cc33',
+      'yellow': '#ffcc00',
+      'black':  '#222222',
+      'white':  '#ffffff',
+      'blue':   '#3366ff'
+    }};
+    var buoyLayer = L.layerGroup().addTo(map);
+    var lastBuoys = [];
+
+    function renderBuoys() {{
+      buoyLayer.clearLayers();
+      if (!usvMarker || lastBuoys.length === 0) return;
+      var center = usvMarker.getLatLng();
+      lastBuoys.forEach(function(b) {{
+        var dN = b[0], dE = b[1], color = b[2], id = b[3];
+        var dist    = Math.sqrt(dN*dN + dE*dE);
+        var bearing = Math.atan2(dE, dN) * 180 / Math.PI;
+        var pos = destinationPoint(center.lat, center.lng, bearing, dist);
+        var fill   = BUOY_COLOR_MAP[color] || '#ff8800';
+        var stroke = (color === 'white' || color === 'yellow') ? '#000000' : '#ffffff';
+        var marker = L.circleMarker(pos, {{
+          radius: 6,
+          color: stroke,
+          weight: 1.2,
+          fillColor: fill,
+          fillOpacity: 0.9
+        }}).bindTooltip(color + ' #' + id, {{permanent: false}});
+        buoyLayer.addLayer(marker);
+      }});
+    }}
+
+    function updateBuoys(buoys) {{
+      lastBuoys = buoys;
+      renderBuoys();
     }}
 
     var compassControl = L.control({{position: 'bottomright'}});
@@ -314,6 +353,17 @@ class MapWidget(QWidget):
     def update_position(self, lat: float, lon: float, heading: float):
         self._pos_timer.start()
         self._view.page().runJavaScript(f"hidePositionLost(); updatePosition({lat}, {lon}, {heading});")
+
+    @pyqtSlot(list)
+    def update_buoys(self, buoys):
+        if not buoys:
+            self._view.page().runJavaScript("updateBuoys([]);")
+            return
+        js_array = "[" + ",".join(
+            f"[{dn},{de},'{color}',{bid}]"
+            for dn, de, color, bid in buoys
+        ) + "]"
+        self._view.page().runJavaScript(f"updateBuoys({js_array});")
 
     def _on_follow_toggled(self, checked: bool):
         self._follow_btn.setText("Following USV" if checked else "Free View")
