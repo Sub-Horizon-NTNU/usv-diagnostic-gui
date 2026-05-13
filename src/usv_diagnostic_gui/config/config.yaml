@@ -93,11 +93,12 @@ float_displays:
 
 
 buttons:
-  columns: 3
+  columns: 5
   items:
     - label: Bringup
       command: "ros2 launch usv_bringup usv_bringup.launch.py"
       tab_name: bringup
+      cwd: "/home/subhorizon/bachelor/final/"
       args:
         - name: simulator_mode
           default: "false"
@@ -109,37 +110,36 @@ buttons:
           default: "192.168.2.42:14560"
           description: QGroundControl IP and port
 
-    - label: Controller
-      command: "ros2 launch usv_controller usv_controller.launch.py"
-      tab_name: controller
-      args:
-        - name: initial_heading
-          default: "0.0"
-          description: Initial heading in degrees
-
     - label: 8-Test
       command: "ros2 launch usv_mission_planner mission.launch.py mission:=figure_8_test"
       tab_name: 8_test
+      cwd: "/home/subhorizon/bachelor/final/"
 
     - label: Circle
       command: "ros2 launch usv_mission_planner mission.launch.py mission:=circle_test"
       tab_name: circle
+      cwd: "/home/subhorizon/bachelor/final/"
 
     - label: Triangle
       command: "ros2 launch usv_mission_planner mission.launch.py mission:=triangle_test"
       tab_name: triangle
+      cwd: "/home/subhorizon/bachelor/final/"
 
     - label: Speedgate
       command: "ros2 launch usv_mission_planner mission.launch.py mission:=speedgate_mission"
       tab_name: speedgate
+      cwd: "/home/subhorizon/bachelor/final/"
 
     - label: Obstacle
       command: "ros2 launch usv_mission_planner mission.launch.py mission:=obstacle_channel_mission"
       tab_name: obstacle
+      cwd: "/home/subhorizon/bachelor/final/"
 
     - label: Docking
       command: "ros2 launch usv_mission_planner mission.launch.py mission:=visual_docking_mission"
       tab_name: docking
+      cwd: "/home/subhorizon/bachelor/final/"
+
 
     - label: Jetson Reboot
       command: "echo '{sudo_password}' | sudo -S reboot"

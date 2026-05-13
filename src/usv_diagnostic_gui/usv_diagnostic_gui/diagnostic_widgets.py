@@ -318,6 +318,7 @@ class CommandButtonWidget(QtWidgets.QWidget):
         self.command = spec.get('command', '')
         self.tab_name = spec.get('tab_name', spec.get('label', 'Process'))
         self._args = spec.get('args', [])
+        self._cwd = spec.get('cwd', '')
 
         self._ros_node = None
         self._no_stop = spec.get('no_stop', False)
@@ -366,6 +367,9 @@ class CommandButtonWidget(QtWidgets.QWidget):
             )
             if suffix:
                 command = f'{command} {suffix}'
+
+        if self._cwd:
+            command = f'cd {self._cwd} && {command}'
 
         if not self._no_stop:
             self.open_tab_requested.emit(self.tab_name)
